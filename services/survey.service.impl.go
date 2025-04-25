@@ -2,10 +2,12 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"math/rand"
 
 	"github.com/robintsecl/osp_backend/models"
+	utils "github.com/robintsecl/osp_backend/utils"
+
+	customErr "github.com/robintsecl/osp_backend/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -42,12 +44,17 @@ func (ssi *SurveyServiceImpl) CreateSurvey(survey *models.Survey) (*string, erro
 		query := bson.D{bson.E{Key: "token", Value: tokenToCheck}}
 		err := ssi.surveycollection.FindOne(ssi.ctx, query).Decode(&existingToken)
 		if err != nil && err != mongo.ErrNoDocuments {
-			return nil, err
+			return nil, customErr.ErrDBBadGateway
 		}
 		if existingToken == nil {
 			survey.Token = tokenToCheck
 			break
 		}
+	}
+
+	commonErr := utils.CommonChecking(&survey.Questions)
+	if commonErr != nil {
+		return nil, commonErr
 	}
 	_, err := ssi.surveycollection.InsertOne(ssi.ctx, survey)
 	if err != nil {
@@ -86,15 +93,18 @@ func (ssi *SurveyServiceImpl) GetAll() ([]*models.Survey, error) {
 }
 
 func (ssi *SurveyServiceImpl) UpdateSurvey(survey *models.Survey) error {
+	commonErr := utils.CommonChecking(&survey.Questions)
+	if commonErr != nil {
+		return commonErr
+	}
 	query := bson.D{bson.E{Key: "token", Value: survey.Token}}
 	update := bson.D{bson.E{Key: "$set", Value: bson.D{
 		bson.E{Key: "title", Value: survey.Title},
 		bson.E{Key: "questions", Value: survey.Questions},
 	}}}
-	// TODO: should check if that value exist or length > 1 first
 	result, _ := ssi.surveycollection.UpdateOne(ssi.ctx, query, update)
 	if result.MatchedCount != 1 {
-		return fmt.Errorf("no matched document found of update")
+		return customErr.ErrDataNotFound
 	}
 	return nil
 }
@@ -103,7 +113,7 @@ func (ssi *SurveyServiceImpl) DeleteSurvey(token *string) error {
 	query := bson.D{bson.E{Key: "token", Value: token}}
 	result, _ := ssi.surveycollection.DeleteOne(ssi.ctx, query)
 	if result.DeletedCount != 1 {
-		return fmt.Errorf("no matched document found of delete")
+		return customErr.ErrDataNotFound
 	}
 	return nil
 }

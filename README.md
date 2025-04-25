@@ -6,7 +6,7 @@ OSP_backend
 - Install Docker desktop with latest verison
 - Install Git
 - Install mongoDB
-    * docker pull mongo:
+    * docker pull mongo:8.0.8
     * docker run --name osp-db -d -p 27017:27017 mongo
 - Install mongosh v2.5.0
     * https://www.mongodb.com/try/download/shell

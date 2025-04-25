@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	customErr "github.com/robintsecl/osp_backend/errors"
 	"github.com/robintsecl/osp_backend/models"
 	"github.com/robintsecl/osp_backend/services"
 	utils "github.com/robintsecl/osp_backend/utils"
@@ -23,20 +24,22 @@ func NewSurveyController(surveyservice services.SurveyService, usercollection *m
 }
 
 func (sc *SurveyController) CreateSurvey(ctx *gin.Context) {
+	// Check admin
 	admErr := utils.CheckAdmin(ctx, sc.usercollection)
 	if admErr != nil {
-		ctx.JSON(http.StatusForbidden, gin.H{"message": admErr.Error()})
+		customErr.ThrowCustomError(&admErr, ctx)
 		return
 	}
-	// Create
+	// Bind json
 	var survey models.Survey
 	if err := ctx.ShouldBindJSON((&survey)); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+	// Create
 	token, err := sc.SurveyService.CreateSurvey(&survey)
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Success with token: " + *token})
@@ -45,12 +48,12 @@ func (sc *SurveyController) CreateSurvey(ctx *gin.Context) {
 func (sc *SurveyController) GetSurvey(ctx *gin.Context) {
 	token := ctx.Query("token")
 	if token == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Token query parameter is required"})
+		customErr.ThrowCustomError(&customErr.ErrQueryParamMissing, ctx)
 		return
 	}
 	survey, err := sc.SurveyService.GetSurvey(&token)
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
 	ctx.JSON(http.StatusOK, survey)
@@ -59,7 +62,7 @@ func (sc *SurveyController) GetSurvey(ctx *gin.Context) {
 func (sc *SurveyController) GetAll(ctx *gin.Context) {
 	surveys, err := sc.SurveyService.GetAll()
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
 	ctx.JSON(http.StatusOK, surveys)
@@ -68,7 +71,7 @@ func (sc *SurveyController) GetAll(ctx *gin.Context) {
 func (sc *SurveyController) UpdateSurvey(ctx *gin.Context) {
 	admErr := utils.CheckAdmin(ctx, sc.usercollection)
 	if admErr != nil {
-		ctx.JSON(http.StatusForbidden, gin.H{"message": admErr.Error()})
+		customErr.ThrowCustomError(&admErr, ctx)
 		return
 	}
 
@@ -79,7 +82,7 @@ func (sc *SurveyController) UpdateSurvey(ctx *gin.Context) {
 	}
 	err := sc.SurveyService.UpdateSurvey(&survey)
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
 	ctx.JSON(http.StatusOK, survey)
@@ -88,17 +91,17 @@ func (sc *SurveyController) UpdateSurvey(ctx *gin.Context) {
 func (sc *SurveyController) DeleteSurvey(ctx *gin.Context) {
 	admErr := utils.CheckAdmin(ctx, sc.usercollection)
 	if admErr != nil {
-		ctx.JSON(http.StatusForbidden, gin.H{"message": admErr.Error()})
+		customErr.ThrowCustomError(&admErr, ctx)
 		return
 	}
 	token := ctx.Query("token")
 	if token == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Token query parameter is required"})
+		customErr.ThrowCustomError(&customErr.ErrQueryParamMissing, ctx)
 		return
 	}
 	err := sc.SurveyService.DeleteSurvey(&token)
 	if err != nil {
-		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Success"})
