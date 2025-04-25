@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/gin-gonic/gin"
+	constant "github.com/robintsecl/osp_backend/constants"
 	customErr "github.com/robintsecl/osp_backend/errors"
 	"github.com/robintsecl/osp_backend/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -29,13 +30,20 @@ func CheckAdmin(ctx *gin.Context, usercollection *mongo.Collection) error {
 }
 
 func CommonChecking(questions *[]models.Question) error {
+	// Check duplicate title
 	titleMap := make(map[string]bool)
 	isDupTitle := false
+	// Check format and spec
+	isWrongFormat := false
 	for _, question := range *questions {
 		checkIsDuplicateTitle(question.Title, titleMap, &isDupTitle)
+		checkFormatAndSpec(question, &isWrongFormat)
 	}
 	if isDupTitle {
 		return customErr.ErrDuplicateQuestionTitle
+	}
+	if isWrongFormat {
+		return customErr.ErrInvalidQuestionFormatAndSpec
 	}
 	return nil
 }
@@ -46,6 +54,26 @@ func checkIsDuplicateTitle(currentValue string, titleMap map[string]bool, isDup 
 			titleMap[currentValue] = true
 		} else {
 			*isDup = true
+		}
+	}
+}
+
+func checkFormatAndSpec(question models.Question, isWrongFormat *bool) {
+	if !*isWrongFormat {
+		if question.Type == constant.TEXTBOX {
+			if len(question.Spec) > constant.TEXTBOX_MIN_LEN {
+				*isWrongFormat = true
+			}
+		}
+		if question.Type == constant.MC {
+			if len(question.Spec) < constant.MC_MIN_LEN {
+				*isWrongFormat = true
+			}
+		}
+		if question.Type == constant.LS {
+			if len(question.Spec) < constant.LS_MIN_LEN {
+				*isWrongFormat = true
+			}
 		}
 	}
 }
