@@ -1,0 +1,114 @@
+package controllers
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/robintsecl/osp_backend/models"
+	"github.com/robintsecl/osp_backend/services"
+	utils "github.com/robintsecl/osp_backend/utils"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type SurveyController struct {
+	SurveyService  services.SurveyService
+	usercollection *mongo.Collection
+}
+
+func NewSurveyController(surveyservice services.SurveyService, usercollection *mongo.Collection) SurveyController {
+	return SurveyController{
+		SurveyService:  surveyservice,
+		usercollection: usercollection,
+	}
+}
+
+func (sc *SurveyController) CreateSurvey(ctx *gin.Context) {
+	admErr := utils.CheckAdmin(ctx, sc.usercollection)
+	if admErr != nil {
+		ctx.JSON(http.StatusForbidden, gin.H{"message": admErr.Error()})
+		return
+	}
+	// Create
+	var survey models.Survey
+	if err := ctx.ShouldBindJSON((&survey)); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	token, err := sc.SurveyService.CreateSurvey(&survey)
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Success with token: " + *token})
+}
+
+func (sc *SurveyController) GetSurvey(ctx *gin.Context) {
+	token := ctx.Query("token")
+	if token == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Token query parameter is required"})
+		return
+	}
+	survey, err := sc.SurveyService.GetSurvey(&token)
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, survey)
+}
+
+func (sc *SurveyController) GetAll(ctx *gin.Context) {
+	surveys, err := sc.SurveyService.GetAll()
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, surveys)
+}
+
+func (sc *SurveyController) UpdateSurvey(ctx *gin.Context) {
+	admErr := utils.CheckAdmin(ctx, sc.usercollection)
+	if admErr != nil {
+		ctx.JSON(http.StatusForbidden, gin.H{"message": admErr.Error()})
+		return
+	}
+
+	var survey models.Survey
+	if err := ctx.ShouldBindJSON((&survey)); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	err := sc.SurveyService.UpdateSurvey(&survey)
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, survey)
+}
+
+func (sc *SurveyController) DeleteSurvey(ctx *gin.Context) {
+	admErr := utils.CheckAdmin(ctx, sc.usercollection)
+	if admErr != nil {
+		ctx.JSON(http.StatusForbidden, gin.H{"message": admErr.Error()})
+		return
+	}
+	token := ctx.Query("token")
+	if token == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Token query parameter is required"})
+		return
+	}
+	err := sc.SurveyService.DeleteSurvey(&token)
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Success"})
+}
+
+func (sc *SurveyController) RegisterSurveyRoutes(rg *gin.RouterGroup) {
+	surveyroute := rg.Group("/survey")
+	surveyroute.POST("/create", sc.CreateSurvey)
+	surveyroute.GET("/get", sc.GetSurvey)
+	surveyroute.GET("/getall", sc.GetAll)
+	surveyroute.PUT("/update", sc.UpdateSurvey)
+	surveyroute.DELETE("/delete", sc.DeleteSurvey)
+}
