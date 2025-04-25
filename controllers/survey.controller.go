@@ -60,6 +60,12 @@ func (sc *SurveyController) GetSurvey(ctx *gin.Context) {
 }
 
 func (sc *SurveyController) GetAll(ctx *gin.Context) {
+	// Check admin
+	admErr := utils.CheckAdmin(ctx, sc.usercollection)
+	if admErr != nil {
+		customErr.ThrowCustomError(&admErr, ctx)
+		return
+	}
 	surveys, err := sc.SurveyService.GetAll()
 	if err != nil {
 		customErr.ThrowCustomError(&err, ctx)

@@ -1,8 +1,6 @@
 package utils
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	constant "github.com/robintsecl/osp_backend/constants"
 	customErr "github.com/robintsecl/osp_backend/errors"
@@ -15,7 +13,7 @@ func CheckAdmin(ctx *gin.Context, usercollection *mongo.Collection) error {
 	name := ctx.Query("name")
 	pw := ctx.Query("password")
 	if name == "" || pw == "" {
-		return fmt.Errorf("name or pw query parameter is required")
+		return customErr.ErrUnauthorized
 	}
 	query := bson.D{bson.E{Key: "name", Value: name}, bson.E{Key: "password", Value: pw}}
 	err := usercollection.FindOne(ctx, query).Err()
