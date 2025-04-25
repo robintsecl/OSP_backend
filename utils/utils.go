@@ -47,31 +47,34 @@ func CommonChecking(questions *[]models.Question) error {
 }
 
 func checkIsDuplicateTitle(currentValue string, titleMap map[string]bool, isDup *bool) {
-	if !*isDup {
-		if _, dup := titleMap[currentValue]; !dup {
-			titleMap[currentValue] = true
-		} else {
-			*isDup = true
-		}
+	if *isDup {
+		return
+	}
+	if _, dup := titleMap[currentValue]; !dup {
+		titleMap[currentValue] = true
+	} else {
+		*isDup = true
 	}
 }
 
 func checkFormatAndSpec(question models.Question, isWrongFormat *bool) {
-	if !*isWrongFormat {
-		if question.Type == constant.TEXTBOX {
-			if len(question.Spec) > constant.TEXTBOX_MIN_LEN {
-				*isWrongFormat = true
-			}
+	if *isWrongFormat {
+		return
+	}
+	switch question.Type {
+	case constant.TEXTBOX:
+		if len(question.Spec) < constant.TEXTBOX_MIN_LEN {
+			*isWrongFormat = true
 		}
-		if question.Type == constant.MC {
-			if len(question.Spec) < constant.MC_MIN_LEN {
-				*isWrongFormat = true
-			}
+	case constant.MC:
+		if len(question.Spec) < constant.MC_MIN_LEN {
+			*isWrongFormat = true
 		}
-		if question.Type == constant.LS {
-			if len(question.Spec) < constant.LS_MIN_LEN {
-				*isWrongFormat = true
-			}
+	case constant.LS:
+		if len(question.Spec) < constant.LS_MIN_LEN {
+			*isWrongFormat = true
 		}
+	default:
+		*isWrongFormat = true
 	}
 }
