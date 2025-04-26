@@ -1,0 +1,21 @@
+{
+    "title": "Survey 1",
+    "token": "12345",
+    "questions": [
+        {
+            "title": "What is your favourite subject?",
+            "type": "textbox",
+            "spec": []
+        },
+        {
+            "title": "What is your favourite faculty?",
+            "type": "mc",
+            "spec": ["Institute for Advanced Dentistry", "Centre for Applied English Studies", "Department of Art History"]
+        },
+        {
+            "title": "HKU is the best university in Hong Kong",
+            "type": "ls",
+            "spec": ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"]
+        }
+    ]
+}

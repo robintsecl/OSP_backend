@@ -73,10 +73,7 @@ func checkFormatAndSpec(question *models.Question, isWrongFormat *bool) {
 	}
 	switch question.Type {
 	case constant.TEXTBOX:
-		if len(question.Spec) < constant.TEXTBOX_MIN_LEN {
-			fmt.Printf("Length of [%s] specification is smaller than [%v]!\n", constant.TEXTBOX, constant.TEXTBOX_MIN_LEN)
-			*isWrongFormat = true
-		}
+		return
 	case constant.MC:
 		if len(question.Spec) < constant.MC_MIN_LEN {
 			fmt.Printf("Length of [%s] specification is smaller than [%v]!\n", constant.MC, constant.MC_MIN_LEN)
