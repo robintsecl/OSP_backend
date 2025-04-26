@@ -15,6 +15,9 @@ var (
 	ErrDataNotFound                 = errors.New("data not found")
 	ErrDBBadGateway                 = errors.New("bad gateway")
 	ErrInvalidQuestionFormat        = errors.New("invalid question format and specification")
+	ErrTitleNotFoundInQuestion      = errors.New("title of answer not found in question")
+	ErrTextAnswerIsEmpty            = errors.New("answer is empty")
+	ErrInvalidAnswerInSpec          = errors.New("invalid answer according to specification")
 	// ErrSurveyInsertionFailed  = errors.New("failed to insert survey")
 	// ErrInvalidSurveyData      = errors.New("invalid survey data")
 )
@@ -33,6 +36,12 @@ func ThrowCustomError(err *error, ctx *gin.Context) {
 		ctx.JSON(http.StatusNotFound, gin.H{"message": ErrDataNotFound.Error()})
 	case ErrDBBadGateway:
 		ctx.JSON(http.StatusBadGateway, gin.H{"message": ErrDBBadGateway.Error()})
+	case ErrTitleNotFoundInQuestion:
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": ErrTitleNotFoundInQuestion.Error()})
+	case ErrTextAnswerIsEmpty:
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": ErrTextAnswerIsEmpty.Error()})
+	case ErrInvalidAnswerInSpec:
+		ctx.JSON(http.StatusBadGateway, gin.H{"message": ErrInvalidAnswerInSpec.Error()})
 	default:
 		ctx.JSON(http.StatusBadGateway, gin.H{"message": err})
 	}

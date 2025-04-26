@@ -12,16 +12,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// TODO: remove usercollection
+
 type SurveyServiceImpl struct {
 	surveycollection *mongo.Collection
-	usercollection   *mongo.Collection
 	ctx              context.Context
 }
 
-func NewSurveyService(surveycollection *mongo.Collection, usercollection *mongo.Collection, ctx context.Context) SurveyService {
+func NewSurveyService(surveycollection *mongo.Collection, ctx context.Context) SurveyService {
 	return &SurveyServiceImpl{
 		surveycollection: surveycollection,
-		usercollection:   usercollection,
 		ctx:              ctx,
 	}
 }
@@ -51,8 +51,7 @@ func (ssi *SurveyServiceImpl) CreateSurvey(survey *models.Survey) (*string, erro
 			break
 		}
 	}
-
-	commonErr := utils.CommonChecking(&survey.Questions)
+	commonErr := utils.CommonChecking(survey.Questions)
 	if commonErr != nil {
 		return nil, commonErr
 	}
@@ -93,13 +92,15 @@ func (ssi *SurveyServiceImpl) GetAll() ([]*models.Survey, error) {
 }
 
 func (ssi *SurveyServiceImpl) UpdateSurvey(survey *models.Survey) error {
-	commonErr := utils.CommonChecking(&survey.Questions)
+	commonErr := utils.CommonChecking(survey.Questions)
 	if commonErr != nil {
 		return commonErr
 	}
+
 	query := bson.D{bson.E{Key: "token", Value: survey.Token}}
 	update := bson.D{bson.E{Key: "$set", Value: bson.D{
 		bson.E{Key: "title", Value: survey.Title},
+		bson.E{Key: "updateDate", Value: survey.UpdateDate},
 		bson.E{Key: "questions", Value: survey.Questions},
 	}}}
 	result, _ := ssi.surveycollection.UpdateOne(ssi.ctx, query, update)

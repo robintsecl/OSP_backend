@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/robintsecl/osp_backend/controllers"
 	"github.com/robintsecl/osp_backend/services"
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,13 +16,16 @@ import (
 )
 
 var (
-	server           *gin.Engine
-	surveyservice    services.SurveyService
-	surveycontroller controllers.SurveyController
-	ctx              context.Context
-	surveycollection *mongo.Collection
-	mongoclient      *mongo.Client
-	err              error
+	server             *gin.Engine
+	surveyservice      services.SurveyService
+	surveycontroller   controllers.SurveyController
+	surveycollection   *mongo.Collection
+	responseservice    services.ResponseService
+	responsecontroller controllers.ResponseController
+	responsecollection *mongo.Collection
+	ctx                context.Context
+	mongoclient        *mongo.Client
+	err                error
 )
 
 func init() {
@@ -51,10 +55,18 @@ func init() {
 	}
 	fmt.Println("admin password: hkuabc123")
 
+	validate := validator.New()
+
 	surveycollection = mongoclient.Database("osp-db").Collection("survey")
-	surveyservice = services.NewSurveyService(surveycollection, usercollection, ctx)
-	surveycontroller = controllers.NewSurveyController(surveyservice, usercollection)
-	server = gin.Default()
+	surveyservice = services.NewSurveyService(surveycollection, ctx)
+	surveycontroller = controllers.NewSurveyController(surveyservice, usercollection, validate)
+
+	responsecollection = mongoclient.Database("osp-db").Collection("response")
+	responseservice = services.NewResponseService(responsecollection, surveycollection, ctx)
+	responsecontroller = controllers.NewResponseController(responseservice, usercollection, validate)
+
+	gin.SetMode(gin.ReleaseMode)
+	server = gin.New()
 }
 
 func main() {
@@ -62,5 +74,6 @@ func main() {
 
 	basepath := server.Group("/v1")
 	surveycontroller.RegisterSurveyRoutes(basepath)
+	responsecontroller.RegisterResponseRoutes(basepath)
 	log.Fatal(server.Run(":9091"))
 }
