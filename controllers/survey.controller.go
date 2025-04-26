@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -28,6 +29,7 @@ func NewSurveyController(surveyservice services.SurveyService, usercollection *m
 }
 
 func (sc *SurveyController) CreateSurvey(ctx *gin.Context) {
+	fmt.Printf("Creating survey!\n")
 	// Check admin
 	admErr := utils.CheckAdmin(ctx, sc.usercollection)
 	if admErr != nil {
@@ -37,11 +39,12 @@ func (sc *SurveyController) CreateSurvey(ctx *gin.Context) {
 	// Bind json
 	var survey models.Survey
 	if err := ctx.ShouldBindJSON((&survey)); err != nil {
+		fmt.Printf("Failed to bind JSON!\n")
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	// TODO: pass validator from main
 	if err := sc.validate.Struct(survey); err != nil {
+		fmt.Printf("Validation failed! [%s]\n", err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
@@ -50,6 +53,7 @@ func (sc *SurveyController) CreateSurvey(ctx *gin.Context) {
 	// Create
 	token, err := sc.SurveyService.CreateSurvey(&survey)
 	if err != nil {
+		fmt.Printf("Failed to create object! [%s]", err.Error())
 		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
@@ -57,6 +61,7 @@ func (sc *SurveyController) CreateSurvey(ctx *gin.Context) {
 }
 
 func (sc *SurveyController) GetSurvey(ctx *gin.Context) {
+	fmt.Printf("Getting survey!\n")
 	token := ctx.Query("token")
 	if token == "" {
 		customErr.ThrowCustomError(&customErr.ErrQueryParamMissing, ctx)
@@ -64,6 +69,7 @@ func (sc *SurveyController) GetSurvey(ctx *gin.Context) {
 	}
 	survey, err := sc.SurveyService.GetSurvey(&token)
 	if err != nil {
+		fmt.Printf("Failed to get object! [%s]", err.Error())
 		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
@@ -79,6 +85,7 @@ func (sc *SurveyController) GetAll(ctx *gin.Context) {
 	}
 	surveys, err := sc.SurveyService.GetAll()
 	if err != nil {
+		fmt.Printf("Failed to get object! [%s]", err.Error())
 		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
@@ -86,6 +93,7 @@ func (sc *SurveyController) GetAll(ctx *gin.Context) {
 }
 
 func (sc *SurveyController) UpdateSurvey(ctx *gin.Context) {
+	fmt.Printf("Updating survey!\n")
 	admErr := utils.CheckAdmin(ctx, sc.usercollection)
 	if admErr != nil {
 		customErr.ThrowCustomError(&admErr, ctx)
@@ -94,16 +102,19 @@ func (sc *SurveyController) UpdateSurvey(ctx *gin.Context) {
 
 	var survey models.Survey
 	if err := ctx.ShouldBindJSON((&survey)); err != nil {
+		fmt.Printf("Failed to bind JSON!\n")
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	if err := sc.validate.Struct(survey); err != nil {
+		fmt.Printf("Validation failed! [%s]\n", err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	utils.InsertSurveyDate(&survey, constants.ACTION_DATE_UPDATE)
 	err := sc.SurveyService.UpdateSurvey(&survey)
 	if err != nil {
+		fmt.Printf("Failed to update object! [%s]", err.Error())
 		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
@@ -111,6 +122,7 @@ func (sc *SurveyController) UpdateSurvey(ctx *gin.Context) {
 }
 
 func (sc *SurveyController) DeleteSurvey(ctx *gin.Context) {
+	fmt.Printf("Deleting survey!\n")
 	admErr := utils.CheckAdmin(ctx, sc.usercollection)
 	if admErr != nil {
 		customErr.ThrowCustomError(&admErr, ctx)
@@ -123,6 +135,7 @@ func (sc *SurveyController) DeleteSurvey(ctx *gin.Context) {
 	}
 	err := sc.SurveyService.DeleteSurvey(&token)
 	if err != nil {
+		fmt.Printf("Failed to delete object! [%s]", err.Error())
 		customErr.ThrowCustomError(&err, ctx)
 		return
 	}

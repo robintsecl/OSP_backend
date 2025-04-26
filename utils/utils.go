@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -16,17 +17,20 @@ func CheckAdmin(ctx *gin.Context, usercollection *mongo.Collection) error {
 	name := ctx.Query("name")
 	pw := ctx.Query("password")
 	if name == "" || pw == "" {
+		fmt.Printf(("Name or password is empty in query parameter!\n"))
 		return customErr.ErrUnauthorized
 	}
 	query := bson.D{bson.E{Key: "name", Value: name}, bson.E{Key: "password", Value: pw}}
 	err := usercollection.FindOne(ctx, query).Err()
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
+			fmt.Printf(("Name or password not matched!\n"))
 			return customErr.ErrUnauthorized
 		} else {
 			return err
 		}
 	}
+	fmt.Printf(("Login succeed!\n"))
 	return nil
 }
 
@@ -41,9 +45,11 @@ func CommonChecking(questions []*models.Question) error {
 		checkFormatAndSpec(question, &isWrongFormat)
 	}
 	if isDupTitle {
+		fmt.Printf("Duplicate title found!\n")
 		return customErr.ErrDuplicateQuestionTitle
 	}
 	if isWrongFormat {
+		fmt.Printf("Question format and specification is not matched!\n")
 		return customErr.ErrInvalidQuestionFormatAndSpec
 	}
 	return nil
@@ -56,6 +62,7 @@ func checkIsDuplicateTitle(currentValue string, titleMap map[string]bool, isDup 
 	if _, dup := titleMap[currentValue]; !dup {
 		titleMap[currentValue] = true
 	} else {
+		fmt.Printf("Title [%s] is duplicated!\n", currentValue)
 		*isDup = true
 	}
 }
@@ -67,17 +74,21 @@ func checkFormatAndSpec(question *models.Question, isWrongFormat *bool) {
 	switch question.Type {
 	case constant.TEXTBOX:
 		if len(question.Spec) < constant.TEXTBOX_MIN_LEN {
+			fmt.Printf("Length of [%s] specification is smaller than [%v]!\n", constant.TEXTBOX, constant.TEXTBOX_MIN_LEN)
 			*isWrongFormat = true
 		}
 	case constant.MC:
 		if len(question.Spec) < constant.MC_MIN_LEN {
+			fmt.Printf("Length of [%s] specification is smaller than [%v]!\n", constant.MC, constant.MC_MIN_LEN)
 			*isWrongFormat = true
 		}
 	case constant.LS:
 		if len(question.Spec) < constant.LS_MIN_LEN {
+			fmt.Printf("Length of [%s] specification is smaller than [%v]!\n", constant.LS, constant.LS_MIN_LEN)
 			*isWrongFormat = true
 		}
 	default:
+		fmt.Printf("Unknown question format detected!\n")
 		*isWrongFormat = true
 	}
 }
@@ -94,11 +105,13 @@ func ResponseInputChecking(questions []*models.Question, answers []*models.Respo
 		question, isTitleExists := questionMap[answer.Title]
 		// If answer title doesn't exists in question of that survey, throw error
 		if !isTitleExists {
+			fmt.Printf("Title [%s] in answer does not exists in question!\n", answer.Title)
 			return customErr.ErrTitleNotFoundInQuestion
 		}
 		if question.Type == constant.TEXTBOX {
 			// If user haven't input anything, throw error
 			if len(answer.Answer) < 1 {
+				fmt.Printf("Textbox answer is empty!\n")
 				return customErr.ErrTextAnswerIsEmpty
 			}
 		}
@@ -114,6 +127,7 @@ func ResponseInputChecking(questions []*models.Question, answers []*models.Respo
 				}
 			}
 			if !isSpec {
+				fmt.Printf("Answer [%s] is not selectable in question specification!\n", answer.Answer)
 				return customErr.ErrInvalidAnswerInSpec
 			}
 		}

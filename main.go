@@ -65,7 +65,8 @@ func init() {
 	responseservice = services.NewResponseService(responsecollection, surveycollection, ctx)
 	responsecontroller = controllers.NewResponseController(responseservice, usercollection, validate)
 
-	server = gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	server = gin.New()
 }
 
 func main() {

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -28,13 +29,16 @@ func NewResponseController(responseservice services.ResponseService, usercollect
 }
 
 func (rc *ResponseController) CreateResponse(ctx *gin.Context) {
+	fmt.Printf("Creating response!\n")
 	// Bind json
 	var response models.Response
 	if err := ctx.ShouldBindJSON((&response)); err != nil {
+		fmt.Printf("Failed to bind JSON!\n")
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	if err := rc.validate.Struct(response); err != nil {
+		fmt.Printf("Validation failed! [%s]\n", err.Error())
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
@@ -43,6 +47,7 @@ func (rc *ResponseController) CreateResponse(ctx *gin.Context) {
 	// Create
 	err := rc.ResponseService.CreateResponse(&response)
 	if err != nil {
+		fmt.Printf("Failed to create object! [%s]", err.Error())
 		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
@@ -50,6 +55,7 @@ func (rc *ResponseController) CreateResponse(ctx *gin.Context) {
 }
 
 func (rc *ResponseController) GetAll(ctx *gin.Context) {
+	fmt.Printf("Getting response!\n")
 	// Check admin
 	admErr := utils.CheckAdmin(ctx, rc.usercollection)
 	if admErr != nil {
@@ -58,6 +64,7 @@ func (rc *ResponseController) GetAll(ctx *gin.Context) {
 	}
 	responses, err := rc.ResponseService.GetAll()
 	if err != nil {
+		fmt.Printf("Failed to get object! [%s]", err.Error())
 		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
@@ -65,6 +72,7 @@ func (rc *ResponseController) GetAll(ctx *gin.Context) {
 }
 
 func (rc *ResponseController) GetByToken(ctx *gin.Context) {
+	fmt.Printf("Getting response!\n")
 	// Check admin
 	admErr := utils.CheckAdmin(ctx, rc.usercollection)
 	if admErr != nil {
@@ -79,6 +87,7 @@ func (rc *ResponseController) GetByToken(ctx *gin.Context) {
 	}
 	responses, err := rc.ResponseService.GetByToken(&token)
 	if err != nil {
+		fmt.Printf("Failed to get object! [%s]", err.Error())
 		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
@@ -86,6 +95,7 @@ func (rc *ResponseController) GetByToken(ctx *gin.Context) {
 }
 
 func (rc *ResponseController) BatchDeleteResponse(ctx *gin.Context) {
+	fmt.Printf("Deleting response!\n")
 	admErr := utils.CheckAdmin(ctx, rc.usercollection)
 	if admErr != nil {
 		customErr.ThrowCustomError(&admErr, ctx)
@@ -98,6 +108,7 @@ func (rc *ResponseController) BatchDeleteResponse(ctx *gin.Context) {
 	}
 	err := rc.ResponseService.BatchDeleteByToken(&token)
 	if err != nil {
+		fmt.Printf("Failed to delete object! [%s]", err.Error())
 		customErr.ThrowCustomError(&err, ctx)
 		return
 	}
