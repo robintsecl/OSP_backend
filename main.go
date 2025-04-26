@@ -15,13 +15,16 @@ import (
 )
 
 var (
-	server           *gin.Engine
-	surveyservice    services.SurveyService
-	surveycontroller controllers.SurveyController
-	ctx              context.Context
-	surveycollection *mongo.Collection
-	mongoclient      *mongo.Client
-	err              error
+	server             *gin.Engine
+	surveyservice      services.SurveyService
+	surveycontroller   controllers.SurveyController
+	surveycollection   *mongo.Collection
+	responseservice    services.ResponseService
+	responsecontroller controllers.ResponseController
+	responsecollection *mongo.Collection
+	ctx                context.Context
+	mongoclient        *mongo.Client
+	err                error
 )
 
 func init() {
@@ -52,8 +55,13 @@ func init() {
 	fmt.Println("admin password: hkuabc123")
 
 	surveycollection = mongoclient.Database("osp-db").Collection("survey")
-	surveyservice = services.NewSurveyService(surveycollection, usercollection, ctx)
+	surveyservice = services.NewSurveyService(surveycollection, ctx)
 	surveycontroller = controllers.NewSurveyController(surveyservice, usercollection)
+
+	responsecollection = mongoclient.Database("osp-db").Collection("response")
+	responseservice = services.NewResponseService(responsecollection, surveycollection, ctx)
+	responsecontroller = controllers.NewResponseController(responseservice, usercollection)
+
 	server = gin.Default()
 }
 

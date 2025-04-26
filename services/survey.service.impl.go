@@ -12,16 +12,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// TODO: remove usercollection
+
 type SurveyServiceImpl struct {
 	surveycollection *mongo.Collection
-	usercollection   *mongo.Collection
 	ctx              context.Context
 }
 
-func NewSurveyService(surveycollection *mongo.Collection, usercollection *mongo.Collection, ctx context.Context) SurveyService {
+func NewSurveyService(surveycollection *mongo.Collection, ctx context.Context) SurveyService {
 	return &SurveyServiceImpl{
 		surveycollection: surveycollection,
-		usercollection:   usercollection,
 		ctx:              ctx,
 	}
 }

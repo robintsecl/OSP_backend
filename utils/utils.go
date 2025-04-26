@@ -78,3 +78,42 @@ func checkFormatAndSpec(question models.Question, isWrongFormat *bool) {
 		*isWrongFormat = true
 	}
 }
+
+func ResponseInputChecking(questions *[]models.Question, answers *[]models.ResponseAnswer) error {
+	questionMap := make(map[string]models.Question)
+	// Put question to map object
+	for _, question := range *questions {
+		questionMap[question.Title] = question
+	}
+
+	// Loop through answer
+	for _, answer := range *answers {
+		question, isTitleExists := questionMap[answer.Title]
+		// If answer title doesn't exists in question of that survey, throw error
+		if !isTitleExists {
+			return customErr.ErrTitleNotFoundInQuestion
+		}
+		if question.Type == constant.TEXTBOX {
+			// If user haven't input anything, throw error
+			if len(answer.Answer) < 1 {
+				return customErr.ErrTextAnswerIsEmpty
+			}
+		}
+		if question.Type == constant.LS || question.Type == constant.MC {
+			isSpec := false
+			// Loop through spec to see if user selected answer in spec
+			for _, spec := range question.Spec {
+				if isSpec {
+					break
+				}
+				if spec == answer.Answer {
+					isSpec = true
+				}
+			}
+			if !isSpec {
+				return customErr.ErrInvalidAnswerInSpec
+			}
+		}
+	}
+	return nil
+}
