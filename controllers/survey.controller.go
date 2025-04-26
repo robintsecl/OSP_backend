@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"github.com/robintsecl/osp_backend/constants"
 	customErr "github.com/robintsecl/osp_backend/errors"
 	"github.com/robintsecl/osp_backend/models"
@@ -15,12 +16,14 @@ import (
 type SurveyController struct {
 	SurveyService  services.SurveyService
 	usercollection *mongo.Collection
+	validate       *validator.Validate
 }
 
-func NewSurveyController(surveyservice services.SurveyService, usercollection *mongo.Collection) SurveyController {
+func NewSurveyController(surveyservice services.SurveyService, usercollection *mongo.Collection, validate *validator.Validate) SurveyController {
 	return SurveyController{
 		SurveyService:  surveyservice,
 		usercollection: usercollection,
+		validate:       validate,
 	}
 }
 
@@ -34,6 +37,11 @@ func (sc *SurveyController) CreateSurvey(ctx *gin.Context) {
 	// Bind json
 	var survey models.Survey
 	if err := ctx.ShouldBindJSON((&survey)); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	// TODO: pass validator from main
+	if err := sc.validate.Struct(survey); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
@@ -86,6 +94,10 @@ func (sc *SurveyController) UpdateSurvey(ctx *gin.Context) {
 
 	var survey models.Survey
 	if err := ctx.ShouldBindJSON((&survey)); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	if err := sc.validate.Struct(survey); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}

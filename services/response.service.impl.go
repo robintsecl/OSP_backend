@@ -5,6 +5,7 @@ import (
 
 	customErr "github.com/robintsecl/osp_backend/errors"
 	"github.com/robintsecl/osp_backend/models"
+
 	utils "github.com/robintsecl/osp_backend/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -31,7 +32,7 @@ func (rsi *ResponseServiceImpl) CreateResponse(response *models.Response) error 
 	if err != nil {
 		return err
 	}
-	inputErr := utils.ResponseInputChecking(&survey.Questions, &response.ResponseAnswer)
+	inputErr := utils.ResponseInputChecking(survey.Questions, response.ResponseAnswer)
 	if inputErr != nil {
 		return inputErr
 	}

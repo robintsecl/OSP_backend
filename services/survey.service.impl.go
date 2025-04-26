@@ -51,8 +51,7 @@ func (ssi *SurveyServiceImpl) CreateSurvey(survey *models.Survey) (*string, erro
 			break
 		}
 	}
-
-	commonErr := utils.CommonChecking(&survey.Questions)
+	commonErr := utils.CommonChecking(survey.Questions)
 	if commonErr != nil {
 		return nil, commonErr
 	}
@@ -93,7 +92,7 @@ func (ssi *SurveyServiceImpl) GetAll() ([]*models.Survey, error) {
 }
 
 func (ssi *SurveyServiceImpl) UpdateSurvey(survey *models.Survey) error {
-	commonErr := utils.CommonChecking(&survey.Questions)
+	commonErr := utils.CommonChecking(survey.Questions)
 	if commonErr != nil {
 		return commonErr
 	}

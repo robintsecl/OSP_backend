@@ -30,13 +30,13 @@ func CheckAdmin(ctx *gin.Context, usercollection *mongo.Collection) error {
 	return nil
 }
 
-func CommonChecking(questions *[]models.Question) error {
+func CommonChecking(questions []*models.Question) error {
 	// Check duplicate title
 	titleMap := make(map[string]bool)
 	isDupTitle := false
 	// Check format and spec
 	isWrongFormat := false
-	for _, question := range *questions {
+	for _, question := range questions {
 		checkIsDuplicateTitle(question.Title, titleMap, &isDupTitle)
 		checkFormatAndSpec(question, &isWrongFormat)
 	}
@@ -60,7 +60,7 @@ func checkIsDuplicateTitle(currentValue string, titleMap map[string]bool, isDup 
 	}
 }
 
-func checkFormatAndSpec(question models.Question, isWrongFormat *bool) {
+func checkFormatAndSpec(question *models.Question, isWrongFormat *bool) {
 	if *isWrongFormat {
 		return
 	}
@@ -82,15 +82,15 @@ func checkFormatAndSpec(question models.Question, isWrongFormat *bool) {
 	}
 }
 
-func ResponseInputChecking(questions *[]models.Question, answers *[]models.ResponseAnswer) error {
+func ResponseInputChecking(questions []*models.Question, answers []*models.ResponseAnswer) error {
 	questionMap := make(map[string]models.Question)
 	// Put question to map object
-	for _, question := range *questions {
-		questionMap[question.Title] = question
+	for _, question := range questions {
+		questionMap[question.Title] = *question
 	}
 
 	// Loop through answer
-	for _, answer := range *answers {
+	for _, answer := range answers {
 		question, isTitleExists := questionMap[answer.Title]
 		// If answer title doesn't exists in question of that survey, throw error
 		if !isTitleExists {

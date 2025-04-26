@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	constants "github.com/robintsecl/osp_backend/constants"
 	customErr "github.com/robintsecl/osp_backend/errors"
 	"github.com/robintsecl/osp_backend/models"
 	"github.com/robintsecl/osp_backend/services"
@@ -14,12 +16,14 @@ import (
 type ResponseController struct {
 	ResponseService services.ResponseService
 	usercollection  *mongo.Collection
+	validate        *validator.Validate
 }
 
-func NewResponseController(responseservice services.ResponseService, usercollection *mongo.Collection) ResponseController {
+func NewResponseController(responseservice services.ResponseService, usercollection *mongo.Collection, validate *validator.Validate) ResponseController {
 	return ResponseController{
 		ResponseService: responseservice,
 		usercollection:  usercollection,
+		validate:        validate,
 	}
 }
 
@@ -30,6 +34,12 @@ func (rc *ResponseController) CreateResponse(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+	if err := rc.validate.Struct(response); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+	// Insert date
+	utils.InsertResponseDate(&response, constants.ACTION_DATE_CREATE)
 	// Create
 	err := rc.ResponseService.CreateResponse(&response)
 	if err != nil {
@@ -95,9 +105,9 @@ func (rc *ResponseController) BatchDeleteResponse(ctx *gin.Context) {
 }
 
 func (rc *ResponseController) RegisterResponseRoutes(rg *gin.RouterGroup) {
-	responseroute := rg.Group("/response")
+	responseroute := rg.Group("/responses")
 	responseroute.POST("/create", rc.CreateResponse)
 	responseroute.GET("/getall", rc.GetAll)
-	responseroute.PUT("/getbytoken", rc.GetByToken)
+	responseroute.GET("/getbytoken", rc.GetByToken)
 	responseroute.DELETE("/batchdelete", rc.BatchDeleteResponse)
 }
