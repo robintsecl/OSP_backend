@@ -54,7 +54,6 @@ func (rc *ResponseController) GetAll(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, responses)
 }
 
-// TODO: pass token
 func (rc *ResponseController) GetByToken(ctx *gin.Context) {
 	// Check admin
 	admErr := utils.CheckAdmin(ctx, rc.usercollection)
@@ -68,7 +67,7 @@ func (rc *ResponseController) GetByToken(ctx *gin.Context) {
 		customErr.ThrowCustomError(&customErr.ErrQueryParamMissing, ctx)
 		return
 	}
-	responses, err := rc.ResponseService.GetAll()
+	responses, err := rc.ResponseService.GetByToken(&token)
 	if err != nil {
 		customErr.ThrowCustomError(&err, ctx)
 		return

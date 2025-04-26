@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/robintsecl/osp_backend/constants"
 	customErr "github.com/robintsecl/osp_backend/errors"
 	"github.com/robintsecl/osp_backend/models"
 	"github.com/robintsecl/osp_backend/services"
@@ -36,6 +37,8 @@ func (sc *SurveyController) CreateSurvey(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+	// Insert date
+	utils.InsertSurveyDate(&survey, constants.ACTION_DATE_CREATE)
 	// Create
 	token, err := sc.SurveyService.CreateSurvey(&survey)
 	if err != nil {
@@ -86,6 +89,7 @@ func (sc *SurveyController) UpdateSurvey(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+	utils.InsertSurveyDate(&survey, constants.ACTION_DATE_UPDATE)
 	err := sc.SurveyService.UpdateSurvey(&survey)
 	if err != nil {
 		customErr.ThrowCustomError(&err, ctx)

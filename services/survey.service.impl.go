@@ -97,9 +97,11 @@ func (ssi *SurveyServiceImpl) UpdateSurvey(survey *models.Survey) error {
 	if commonErr != nil {
 		return commonErr
 	}
+
 	query := bson.D{bson.E{Key: "token", Value: survey.Token}}
 	update := bson.D{bson.E{Key: "$set", Value: bson.D{
 		bson.E{Key: "title", Value: survey.Title},
+		bson.E{Key: "updateDate", Value: survey.UpdateDate},
 		bson.E{Key: "questions", Value: survey.Questions},
 	}}}
 	result, _ := ssi.surveycollection.UpdateOne(ssi.ctx, query, update)

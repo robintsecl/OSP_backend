@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
+	"github.com/robintsecl/osp_backend/constants"
 	constant "github.com/robintsecl/osp_backend/constants"
 	customErr "github.com/robintsecl/osp_backend/errors"
 	"github.com/robintsecl/osp_backend/models"
@@ -116,4 +119,24 @@ func ResponseInputChecking(questions *[]models.Question, answers *[]models.Respo
 		}
 	}
 	return nil
+}
+
+func InsertSurveyDate(survey *models.Survey, insertType string) {
+	if insertType == constants.ACTION_DATE_CREATE {
+		survey.CreateDate = time.Now()
+		survey.UpdateDate = time.Now()
+	}
+	if insertType == constants.ACTION_DATE_UPDATE {
+		survey.UpdateDate = time.Now()
+	}
+}
+
+func InsertResponseDate(response *models.Response, insertType string) {
+	if insertType == constants.ACTION_DATE_CREATE {
+		response.CreateDate = time.Now()
+		response.UpdateDate = time.Now()
+	}
+	if insertType == constants.ACTION_DATE_UPDATE {
+		response.UpdateDate = time.Now()
+	}
 }
