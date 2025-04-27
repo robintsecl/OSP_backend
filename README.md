@@ -52,11 +52,11 @@ line 68-69: Initialize gin route with release mode.
 
 line 72-79: Main function, run server and append survey and respnse path after basepath. Disconnect Mongo after main exited.
 
-# Package model
-Survey: Survey and Question are created for survey structure
+# models
+Survey: Survey and Question are created for survey structure.
 Response: Response and ResponseAnswer are created for response structure.
 
-Survey is like a google form with type and spec defined by creator, and answerer need to get survey token to answer survey, following the type(format) and spec specified by creator. Only 3 type of questions are accepted including Textbox, Multiple Choice, and Likert scale. Creator must input question.type follows the string in constants.go: "TEXTBOX", "MC" and "LS". Otherwises, an error will be thrown.
+Survey is like a google form with type and spec defined by creator, and answerer need to get survey token to answer survey, following the type(format) and spec specified by creator. Only 3 type of questions are accepted including Textbox, Multiple Choice, and Likert scale. Creator must input question.type follows the string in constants.go: "TEXTBOX", "MC" and "LS". Otherwises, an error will be thrown. After creator decided the type(format) of question, they need to provide the spec as an array of options. With textbox type, the spec array can be empty since it receive string anyway. But for Multiple Choice and Likert scale, survey should provide an array of option for answerer (frontend) to select. Details will be in utils section below -> checkFormatAndSpec.
 
 You can checkout the /test/ folder, the response.token should be replaced by the value after createSurvey as value to map response with appropriate survey. 
 
@@ -192,3 +192,17 @@ For Likert scale and Multiple choice -> if answerer haven't input the answer in 
 These functions receive 2 arguments including response/survey and insertType.
 
 These function checks if insertType is update or create. If update, assign time.Now() to updateDate. If create, assign time.Now() to both createDate and updateDate
+
+# Potential issue as a prodiction-wise server
+- Insuffficient data type
+If the survey contains many questions, the whole survey document may be so large in size after platform scaled up. Separating question and survey into 2 collections, then store the question ids to survey will be a solution for this issue.
+- Simple admin authentication method
+In this sample api server, it is designed to have admin login in order to perform some create and update action. However, it has fix user and password, and passing the value from query parameter only. A production-wise application should have an authentication server to control APIs access, also have a user collection, some endpoint for user management in db.
+- CORS issue
+This sample api server should only allow localhost request but not from other ip. A production-wise api server should have CORS setting configurated and additional coding pointing to the domain of frontend.
+- Logging
+This sample api server only printed log to stdout but not stored in file. A production-wise api server should have logging library like log4j in Java to handle logging and file rotation.
+- High availability
+The sample api server has one node only. A production-wise api server should have more than one node and allow to failover upon server failure. Also apply load balancer to allocate triffic.
+- Security
+Reverse Proxy should be applied for load balancing and protecting api-server from attack. Also allow resource forwarding especially when there are several applications under a domain. Furthermore, it handles SSL encryption and decryption to provide a more secure environment.
