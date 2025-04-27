@@ -194,15 +194,15 @@ These functions receive 2 arguments including response/survey and insertType.
 These function checks if insertType is update or create. If update, assign time.Now() to updateDate. If create, assign time.Now() to both createDate and updateDate
 
 # Potential issue as a prodiction-wise server
-- Insuffficient data type
+- Insuffficient data type: 
 If the survey contains many questions, the whole survey document may be so large in size after platform scaled up. Separating question and survey into 2 collections, then store the question ids to survey will be a solution for this issue.
-- Simple admin authentication method
+- Simple admin authentication method: 
 In this sample api server, it is designed to have admin login in order to perform some create and update action. However, it has fix user and password, and passing the value from query parameter only. A production-wise application should have an authentication server to control APIs access, also have a user collection, some endpoint for user management in db.
-- CORS issue
+- CORS issue: 
 This sample api server should only allow localhost request but not from other ip. A production-wise api server should have CORS setting configurated and additional coding pointing to the domain of frontend.
-- Logging
+- Logging: 
 This sample api server only printed log to stdout but not stored in file. A production-wise api server should have logging library like log4j in Java to handle logging and file rotation.
-- High availability
+- High availability: 
 The sample api server has one node only. A production-wise api server should have more than one node and allow to failover upon server failure. Also apply load balancer to allocate triffic.
-- Security
+- Security: 
 Reverse Proxy should be applied for load balancing and protecting api-server from attack. Also allow resource forwarding especially when there are several applications under a domain. Furthermore, it handles SSL encryption and decryption to provide a more secure environment.
